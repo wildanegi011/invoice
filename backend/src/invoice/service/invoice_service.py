@@ -19,7 +19,10 @@ class InvoiceService:
                 subtotal=invoice.subtotal,
                 tax=invoice.tax,
                 total=invoice.total,
-                items=invoice.items,
+                items=[
+                    {"name": item.name, "qty": item.qty, "rate": item.rate}
+                    for item in invoice.items
+                ],
             )
             for invoice in self.repository.list()
         ]
@@ -35,7 +38,10 @@ class InvoiceService:
             subtotal=invoice.subtotal,
             tax=invoice.tax,
             total=invoice.total,
-            items=invoice.items,
+            items=[
+                {"name": item.name, "qty": item.qty, "rate": item.rate}
+                for item in invoice.items
+            ],
         )
     
     def create_invoice(self, dto: InvoiceCreateDto) -> InvoiceResponseDTO:
@@ -65,7 +71,10 @@ class InvoiceService:
             subtotal=invoice.subtotal,
             tax=invoice.tax,
             total=invoice.total,
-            items=invoice.items,
+            items=[
+                {"name": item.name, "qty": item.qty, "rate": item.rate}
+                for item in invoice.items
+            ],
         )
 
     def update_invoice(
@@ -98,7 +107,10 @@ class InvoiceService:
             subtotal=invoice.subtotal,
             tax=invoice.tax,
             total=invoice.total,
-            items=invoice.items,
+            items=[
+                {"name": item.name, "qty": item.qty, "rate": item.rate}
+                for item in invoice.items
+            ],
         )
 
     def delete_invoice(self, invoice_id: int) -> None:
