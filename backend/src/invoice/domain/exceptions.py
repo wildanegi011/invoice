@@ -1,0 +1,2 @@
+class InvalidInvoice(Exception):
+    pass
