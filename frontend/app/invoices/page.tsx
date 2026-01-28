@@ -3,10 +3,9 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { columns } from "./columns"
 import { DataTable } from "./data-table"
-import { getInvoices, createInvoice, updateInvoice, deleteInvoice, Invoice } from "@/lib/api"
-import { useEffect, useState } from "react"
+import { Invoice } from "@/lib/api"
+import { useState } from "react"
 import { InvoiceForm } from "@/components/invoice-form"
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import {
@@ -19,11 +18,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  useInvoices,
+  useCreateInvoice,
+  useUpdateInvoice,
+  useDeleteInvoice
+} from "@/hooks/use-invoices"
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Query Hooks
+  const { data: invoices = [], isLoading, error } = useInvoices();
+  const createInvoiceMutation = useCreateInvoice();
+  const updateInvoiceMutation = useUpdateInvoice();
+  const deleteInvoiceMutation = useDeleteInvoice();
 
   // Form State
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -33,30 +40,12 @@ export default function InvoicesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
-  const fetchInvoices = async () => {
-    try {
-      const data = await getInvoices()
-      setInvoices(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-      toast.error('Failed to fetch invoices')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchInvoices()
-  }, [])
-
   const handleCreate = async (data: Omit<Invoice, 'id'>) => {
     try {
-      await createInvoice(data)
-      await fetchInvoices()
-      setIsFormOpen(false)
-      toast.success('Invoice created successfully')
+      await createInvoiceMutation.mutateAsync(data);
+      setIsFormOpen(false);
     } catch (err) {
-      toast.error('Failed to create invoice')
+      // Toast handled in hook
     }
   }
 
@@ -64,13 +53,11 @@ export default function InvoicesPage() {
     if (!currentInvoice) return
 
     try {
-      await updateInvoice(currentInvoice.id, data)
-      await fetchInvoices()
-      setCurrentInvoice(null)
-      setIsFormOpen(false) // Close form here
-      toast.success('Invoice updated successfully')
+      await updateInvoiceMutation.mutateAsync({ id: currentInvoice.id, data });
+      setCurrentInvoice(null);
+      setIsFormOpen(false);
     } catch (err) {
-      toast.error('Failed to update invoice')
+      // Toast handled in hook
     }
   }
 
@@ -83,14 +70,12 @@ export default function InvoicesPage() {
     if (!deleteId) return
 
     try {
-      await deleteInvoice(deleteId)
-      await fetchInvoices()
-      toast.success('Invoice deleted successfully')
+      await deleteInvoiceMutation.mutateAsync(deleteId);
+      setIsDeleteOpen(false);
     } catch (err) {
-      toast.error('Failed to delete invoice')
+      // Toast handled in hook
     } finally {
-      setIsDeleteOpen(false)
-      setDeleteId(null)
+      setDeleteId(null);
     }
   }
 
@@ -112,7 +97,7 @@ export default function InvoicesPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-4 text-destructive">Error: {error}</div>
+        <div className="p-4 text-destructive">Error: Failed to load invoices</div>
       </DashboardLayout>
     )
   }
@@ -160,9 +145,19 @@ export default function InvoicesPage() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                Delete
+              <AlertDialogCancel disabled={deleteInvoiceMutation.isPending}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteInvoiceMutation.isPending}>
+                {deleteInvoiceMutation.isPending ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
