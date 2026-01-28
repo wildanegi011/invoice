@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
-import InvoiceDocument from "@/components/invoice-document";
+import InvoiceDocument from "./invoice-document";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const PDFViewer = dynamic(() => import("@/components/pdf-viewer"), {
+const PDFViewer = dynamic(() => import("@/components/shared/pdf-viewer"), {
   ssr: false,
 });
 

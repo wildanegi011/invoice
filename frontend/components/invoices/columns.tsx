@@ -2,7 +2,7 @@
 
 import { Invoice } from "@/lib/api"
 import { ColumnDef } from "@tanstack/react-table"
-import InvoicePDFButton from "@/components/invoice-pdf-button";
+import InvoicePDFButton from "./invoice-pdf-button";
 
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";

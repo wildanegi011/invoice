@@ -11,3 +11,4 @@ wheels/
 backend/.env
 frontend/.env
 frontend/node_modules
+.env
