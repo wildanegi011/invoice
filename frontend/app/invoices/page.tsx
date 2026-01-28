@@ -7,13 +7,31 @@ import { getInvoices, createInvoice, updateInvoice, deleteInvoice, Invoice } fro
 import { useEffect, useState } from "react"
 import { InvoiceForm } from "@/components/invoice-form"
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Form State
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null)
+
+  // Delete State
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 
   const fetchInvoices = async () => {
     try {
@@ -44,30 +62,39 @@ export default function InvoicesPage() {
 
   const handleUpdate = async (data: Omit<Invoice, 'id'>) => {
     if (!currentInvoice) return
-    
+
     try {
       await updateInvoice(currentInvoice.id, data)
       await fetchInvoices()
       setCurrentInvoice(null)
+      setIsFormOpen(false) // Close form here
       toast.success('Invoice updated successfully')
     } catch (err) {
       toast.error('Failed to update invoice')
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this invoice?')) return
-    
+  const openDeleteModal = (id: string) => {
+    setDeleteId(id)
+    setIsDeleteOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteId) return
+
     try {
-      await deleteInvoice(id)
+      await deleteInvoice(deleteId)
       await fetchInvoices()
       toast.success('Invoice deleted successfully')
     } catch (err) {
       toast.error('Failed to delete invoice')
+    } finally {
+      setIsDeleteOpen(false)
+      setDeleteId(null)
     }
   }
 
-  const handleEdit = (invoice: Invoice) => {    
+  const handleEdit = (invoice: Invoice) => {
     setCurrentInvoice(invoice)
     setIsFormOpen(true)
   };
@@ -75,7 +102,9 @@ export default function InvoicesPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="p-4">Loading invoices...</div>
+        <div className="flex items-center justify-center h-full p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
       </DashboardLayout>
     )
   }
@@ -83,31 +112,36 @@ export default function InvoicesPage() {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="p-4 text-red-500">Error: {error}</div>
+        <div className="p-4 text-destructive">Error: {error}</div>
       </DashboardLayout>
     )
   }
 
   return (
     <DashboardLayout>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Invoices</h1>
-          <button
+      <div className="p-8 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+            <p className="text-muted-foreground mt-1">Manage your invoices and payments.</p>
+          </div>
+          <Button
             onClick={() => {
               setCurrentInvoice(null)
               setIsFormOpen(true)
             }}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
           >
+            <Plus className="mr-2 h-4 w-4" />
             Add Invoice
-          </button>
+          </Button>
         </div>
-        
-        <DataTable 
-          columns={columns({ onEdit: handleEdit, onDelete: handleDelete })} 
-          data={invoices} 
-        />
+
+        <div className="border rounded-md">
+          <DataTable
+            columns={columns({ onEdit: handleEdit, onDelete: openDeleteModal })}
+            data={invoices}
+          />
+        </div>
 
         <InvoiceForm
           isOpen={isFormOpen}
@@ -115,6 +149,24 @@ export default function InvoicesPage() {
           initialData={currentInvoice || undefined}
           onSubmit={currentInvoice ? handleUpdate : handleCreate}
         />
+
+        <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the invoice
+                and remove it from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   )

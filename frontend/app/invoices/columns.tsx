@@ -1,19 +1,21 @@
 "use client"
 
-import InvoiceViewer from "@/components/invoice-viewer";
-import PDFViewer from "@/components/pdf-viewer";
-import { Button } from "@/components/ui/button";
 import { Invoice } from "@/lib/api"
 import { ColumnDef } from "@tanstack/react-table"
-import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import InvoicePDFButton from "@/components/invoice-pdf-button";
 
-    interface ColumnsProps {
-        onEdit: (invoice: Invoice) => void;
-        onDelete: (id: string) => void;
-    }
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+interface ColumnsProps {
+  onEdit: (invoice: Invoice) => void;
+  onDelete: (id: string) => void;
+}
 
 
 export const columns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Invoice>[] => [
@@ -56,18 +58,40 @@ export const columns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Invoice>[
 
       return (
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onEdit(invoice)}
-            className="text-blue-500 hover:text-blue-700"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => onDelete(invoice.id)}
-            className="text-red-500 hover:text-red-700"
-          >
-            Delete
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit(invoice)}
+                className="h-8 w-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit Invoice</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit Invoice</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(invoice.id)}
+                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete Invoice</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete Invoice</p>
+            </TooltipContent>
+          </Tooltip>
+
           <InvoicePDFButton invoice={invoice} />
         </div>
       )
