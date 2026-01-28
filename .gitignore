@@ -9,6 +9,8 @@ wheels/
 # Virtual environments
 .venv
 backend/.env
+backend/.venv
+backend/db.sqlite3
 frontend/.env
 frontend/node_modules
 .env
