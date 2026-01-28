@@ -1,4 +1,4 @@
-# Invoice Service Application
+# Invoice Application
 
 A full-stack Invoice Management application built with **Next.js** (Frontend) and **Django** (Backend).
 
