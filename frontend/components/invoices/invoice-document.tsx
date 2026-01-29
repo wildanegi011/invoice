@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
-import { Invoice } from '@/lib/api';
+import { Invoice } from '@/lib/types';
 
 const styles = StyleSheet.create({
     page: {

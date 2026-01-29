@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import InvoiceDocument from "./invoice-document";
+import { Invoice } from "@/lib/types";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,7 @@ const PDFViewer = dynamic(() => import("@/components/shared/pdf-viewer"), {
   ssr: false,
 });
 
-export default function InvoicePDFButton({ invoice }: any) {
+export default function InvoicePDFButton({ invoice }: { invoice: Invoice }) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const generatePDF = async () => {

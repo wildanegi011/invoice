@@ -3,7 +3,7 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { columns } from "@/components/invoices/columns"
 import { DataTable } from "@/components/ui/data-table"
-import { Invoice } from "@/lib/api"
+import { Invoice } from "@/lib/types"
 import { useState } from "react"
 import { InvoiceForm } from "@/components/invoices/invoice-form"
 import { Button } from "@/components/ui/button"

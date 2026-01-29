@@ -1,80 +1,77 @@
 // frontend/lib/api.ts
-const API_BASE_URL = 'http://localhost:8000/api';
+import { Invoice, InvoiceItem, ApiResponse } from './types';
 
-export interface InvoiceItem {
-  name: string;
-  qty: number;
-  rate: number;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+// Re-export types for backward compatibility if needed, using explicit export type to avoid runtime emission issues if isolatedModules is on,
+// effectively redirecting standard imports. But user wanted split, so we prefer direct imports in other files.
+// Ideally, we should update all consumers. 
+
+// Interfaces moved to ./types.ts
+
+
+interface FetchOptions extends RequestInit {
+  // Add any custom options here if needed in the future
 }
 
-export interface Invoice {
-  id: string;
-  invoice_number: string;
-  tax_rate: number;
-  items: InvoiceItem[];
-  subtotal: number;
-  tax: number;
-  total: number;
-}
+async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
 
-export interface CreateInvoiceDto {
-  invoice_number: string;
-  tax_rate: number;
-  items: Omit<InvoiceItem, 'id'>[];
-}
+  try {
+    const response = await fetch(url, { ...options, headers });
+    const result: ApiResponse<T> = await response.json();
 
-export interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
+    if (!response.ok) {
+      throw new Error(result.message || `API Error: ${response.statusText}`);
+    }
 
-const handleResponse = async <T,>(response: Response): Promise<T> => {
-  const result: ApiResponse<T> = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message || 'Something went wrong');
+    return result.data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unexpected error occurred');
   }
-  return result.data;
-};
+}
 
 export async function getInvoices(): Promise<Invoice[]> {
-  const response = await fetch(`${API_BASE_URL}/invoice/`);
-  return handleResponse<Invoice[]>(response);
+  return fetchAPI<Invoice[]>('/invoice/');
 }
 
 export async function createInvoice(data: Omit<Invoice, 'id'>): Promise<Invoice> {
-  const response = await fetch(`${API_BASE_URL}/invoice/`, {
+  return fetchAPI<Invoice>('/invoice/', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-  return handleResponse<Invoice>(response);
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice> {
-    const response = await fetch(`${API_BASE_URL}/invoice/${id}/`);
-    return handleResponse<Invoice>(response);
+  return fetchAPI<Invoice>(`/invoice/${id}/`);
 }
 
 export async function updateInvoice(id: string, data: Omit<Invoice, 'id'>): Promise<Invoice> {
-  const response = await fetch(`${API_BASE_URL}/invoice/${id}/`, {
+  return fetchAPI<Invoice>(`/invoice/${id}/`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-  return handleResponse<Invoice>(response);
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/invoice/${id}/`, {
+  // Using a specific type for delete response if strictness is needed, 
+  // currently void is fine as we don't return data.
+  // Note: fetchAPI expects a JSON response. 
+  // If your DELETE endpoint doesn't return JSON, this might need adjustment.
+  // Assuming it returns standard ApiResponse structure.
+
+  // Custom handling for delete if it returns empty body or different structure
+  // but based on previous code it seemed to parse json error on failure.
+  // We'll stick to fetchAPI expecting JSON.
+
+  await fetchAPI<null>(`/invoice/${id}/`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to delete invoice');
-  }
 }

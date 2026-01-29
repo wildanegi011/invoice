@@ -1,6 +1,6 @@
 "use client"
 
-import { Invoice } from "@/lib/api"
+import { Invoice } from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table"
 import InvoicePDFButton from "./invoice-pdf-button";
 
